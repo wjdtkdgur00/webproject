@@ -23,7 +23,7 @@ function MyPage({ token, onLogout, onBack }) {
 
   const fetchCompletedScenarios = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/scenario/completed', {
+      const response = await axios.get('http://localhost:8080/scenario/complete', {
         headers: { Authorization: `${token}` },
       });
       setCompletedScenarios(response.data); // 배열로 온다고 가정

@@ -177,12 +177,11 @@ function NFCScenario({ onBack, token }) {
       await axios.post(
         'http://localhost:8080/scenario/complete',
         {
-          scenario: 'NFC',
-          completedAt: new Date().toISOString(),
+          scenario: 'NFC'
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `${token}`,
           },
         }
       );

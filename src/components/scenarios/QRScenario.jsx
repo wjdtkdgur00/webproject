@@ -76,12 +76,11 @@ function SecurityScenario({ onBack, token }) {
       await axios.post(
         'http://localhost:8080/scenario/complete',
         {
-          scenario: 'SECURITY',
-          completedAt: new Date().toISOString(),
+          scenario: 'SECURITY'
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `${token}`,
           },
         }
       );

@@ -152,12 +152,11 @@ function PhishingScenario({ onBack, token }) {
       await axios.post(
         'http://localhost:8080/scenario/complete',
         {
-          scenario: 'PHISHING',
-          completedAt: new Date().toISOString(),
+          scenario: 'PHISHING'
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `${token}`,
           },
         }
       );
