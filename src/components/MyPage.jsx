@@ -12,8 +12,8 @@ function MyPage({ token, onLogout, onBack }) {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/user/me', {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.get('http://localhost:8080/mypage', {
+        headers: { Authorization: `${token}` },
       });
       setUserInfo(response.data);
     } catch (error) {
@@ -60,8 +60,7 @@ function MyPage({ token, onLogout, onBack }) {
             boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
           }}
         >
-          <p style={{ fontSize: 18, fontWeight: '600' }}>사용자: {userInfo.name}</p>
-          <p style={{ fontSize: 16 }}>이메일: {userInfo.email}</p>
+          <p style={{ fontSize: 18, fontWeight: '600' }}>사용자: {userInfo.username}</p>
         </div>
       ) : (
         <p>사용자 정보를 불러오는 중...</p>
