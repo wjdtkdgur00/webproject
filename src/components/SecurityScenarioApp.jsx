@@ -5,6 +5,7 @@ import NFCScenario from './scenarios/NFCScenario';
 import QRScenario from './scenarios/QRScenario';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
+import MyPage from './MyPage';  // 마이페이지 import 추가
 
 const scenarioList = [
   { id: 1, title: '피싱(Phishing) 공격 시나리오' },
@@ -18,6 +19,7 @@ function SecurityScenarioApp() {
   const [username, setUsername] = useState(localStorage.getItem('username'));
   const [selectedId, setSelectedId] = useState(null);
   const [page, setPage] = useState('login'); // login or register
+  const [view, setView] = useState('scenarioList'); // 화면 분기 상태: scenarioList, myPage, scenario
 
   const handleLogin = (receivedToken, receivedUsername) => {
     setToken(receivedToken);
@@ -29,19 +31,27 @@ function SecurityScenarioApp() {
   const renderScenarioComponent = () => {
     switch (selectedId) {
       case 1:
-        return <PhishingScenario onBack={() => setSelectedId(null)} token={token} />;
+        return <PhishingScenario onBack={() => setView('scenarioList')} token={token} />;
       case 2:
-        return <SmishingScenario onBack={() => setSelectedId(null)} token={token} />;
+        return <SmishingScenario onBack={() => setView('scenarioList')} token={token} />;
       case 3:
-        return <NFCScenario onBack={() => setSelectedId(null)} token={token} />;
+        return <NFCScenario onBack={() => setView('scenarioList')} token={token} />;
       case 4:
-        return <QRScenario onBack={() => setSelectedId(null)} token={token} />;
+        return <QRScenario onBack={() => setView('scenarioList')} token={token} />;
       default:
         return null;
     }
   };
 
-  // 로그인 상태 아닐 때: 페이지 선택
+  const handleLogout = () => {
+    setToken(null);
+    setUsername(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    setSelectedId(null);
+    setView('scenarioList');
+  };
+
   if (!token) {
     if (page === 'register') {
       return (
@@ -53,25 +63,48 @@ function SecurityScenarioApp() {
     }
     return (
       <LoginPage
-        onLogin={handleLogin}
+        onLogin={(tkn, user) => {
+          handleLogin(tkn, user);
+          setView('scenarioList');
+        }}
         onMoveToRegister={() => setPage('register')}
       />
     );
   }
 
-  // 로그인 성공 시 시나리오 선택 화면
   return (
     <div style={{ maxWidth: 700, margin: 'auto', padding: 20 }}>
-      {!selectedId ? (
+      {view === 'scenarioList' && (
         <>
           <h1 style={{ textAlign: 'center', color: '#2c3e50' }}>
             {username ? `${username}님, 환영합니다!` : '보안 위험 시나리오 체험'}
           </h1>
+
+          <button
+            onClick={() => setView('myPage')}
+            style={{
+              marginBottom: 15,
+              backgroundColor: '#27ae60',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              padding: '8px 16px',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1e8449')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
+          >
+            마이페이지
+          </button>
+
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {scenarioList.map((s) => (
               <li
                 key={s.id}
-                onClick={() => setSelectedId(s.id)}
+                onClick={() => {
+                  setSelectedId(s.id);
+                  setView('scenario');
+                }}
                 style={{
                   margin: '10px 0',
                   padding: '15px 20px',
@@ -91,10 +124,35 @@ function SecurityScenarioApp() {
               </li>
             ))}
           </ul>
+
+          <button
+            onClick={handleLogout}
+            style={{
+              marginTop: 30,
+              padding: '8px 16px',
+              backgroundColor: '#e74c3c',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#c0392b')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#e74c3c')}
+          >
+            로그아웃
+          </button>
         </>
-      ) : (
-        <div>{renderScenarioComponent()}</div>
       )}
+
+      {view === 'myPage' && (
+        <MyPage
+          token={token}
+          onLogout={handleLogout}
+          onBack={() => setView('scenarioList')}
+        />
+      )}
+
+      {view === 'scenario' && renderScenarioComponent()}
     </div>
   );
 }
