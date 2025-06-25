@@ -181,6 +181,7 @@ const steps = [
 function SmishingScenario({ onBack, token }) {
   const [currentStepId, setCurrentStepId] = useState(steps[0].id);
   const [result, setResult] = useState(null);
+  const [toastVisible, setToastVisible] = useState(false);
 
   const currentStep = steps.find((step) => step.id === currentStepId);
 
@@ -202,7 +203,7 @@ function SmishingScenario({ onBack, token }) {
   const sendScenarioCompletion = async () => {
     try {
       await axios.post(
-        'http://localhost:8080/scenario/complete', // 👉 실제 서버 주소로 변경
+        'http://localhost:8080/scenario/complete', // 실제 서버 주소로 변경
         {
           scenario: 'SMISHING',
           completedAt: new Date().toISOString(),
@@ -217,6 +218,15 @@ function SmishingScenario({ onBack, token }) {
     } catch (error) {
       console.error('시나리오 완료 기록 전송 실패:', error);
     }
+  };
+
+  const handleCompleteClick = async () => {
+    await sendScenarioCompletion();
+    setToastVisible(true);
+    setTimeout(() => {
+      setToastVisible(false);
+      window.location.href = '/'; // 이동할 경로로 변경 가능
+    }, 2000);
   };
 
   return (
@@ -307,29 +317,44 @@ function SmishingScenario({ onBack, token }) {
           )}
           <p style={{ fontSize: 16, marginTop: 10 }}>{result.description}</p>
           <button
-            onClick={() => {
-              sendScenarioCompletion(); // ✅ 시나리오 완료 API 호출
-              setCurrentStepId(steps[0].id);
-              setResult(null);
-            }}
+            onClick={handleCompleteClick}
             style={{
               marginTop: 20,
               padding: '8px 16px',
-              backgroundColor: '#2980b9',
+              backgroundColor: '#27ae60',
               color: '#fff',
               border: 'none',
               borderRadius: 6,
               cursor: 'pointer',
             }}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = '#1f618d')
+              (e.currentTarget.style.backgroundColor = '#1e8449')
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = '#2980b9')
+              (e.currentTarget.style.backgroundColor = '#27ae60')
             }
           >
-            다시 시작하기
+            완료
           </button>
+        </div>
+      )}
+
+      {toastVisible && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 20,
+            right: 20,
+            backgroundColor: '#333',
+            color: '#fff',
+            padding: '12px 20px',
+            borderRadius: 8,
+            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+            zIndex: 9999,
+            opacity: 0.9,
+          }}
+        >
+          완료되었습니다
         </div>
       )}
     </div>

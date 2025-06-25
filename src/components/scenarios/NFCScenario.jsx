@@ -164,6 +164,7 @@ const steps = [
 
 function NFCScenario({ onBack, token }) {
   const [currentStepId, setCurrentStepId] = useState(steps[0].id);
+  const [toastVisible, setToastVisible] = useState(false);
   const currentStep = steps.find((step) => step.id === currentStepId);
   const result = currentStep?.result || null;
 
@@ -174,7 +175,7 @@ function NFCScenario({ onBack, token }) {
   const sendScenarioCompletion = async () => {
     try {
       await axios.post(
-        'http://localhost:8080/scenario/complete', // 👉 실제 서버 주소로 변경
+        'http://localhost:8080/scenario/complete',
         {
           scenario: 'NFC',
           completedAt: new Date().toISOString(),
@@ -189,6 +190,15 @@ function NFCScenario({ onBack, token }) {
     } catch (error) {
       console.error('시나리오 완료 기록 전송 실패:', error);
     }
+  };
+
+  const handleCompleteClick = async () => {
+    await sendScenarioCompletion();
+    setToastVisible(true);
+    setTimeout(() => {
+      setToastVisible(false);
+      window.location.href = "/";  // 이동할 페이지 주소로 변경 가능
+    }, 2000);
   };
 
   return (
@@ -270,24 +280,41 @@ function NFCScenario({ onBack, token }) {
           )}
           <p style={{ fontSize: 16, marginTop: 10 }}>{result.description}</p>
           <button
-            onClick={() => {
-              sendScenarioCompletion(); // ✅ 시나리오 완료 API 호출
-              setCurrentStepId(steps[0].id);
-            }}
+            onClick={handleCompleteClick}
             style={{
               marginTop: 20,
               padding: '8px 16px',
-              backgroundColor: '#2980b9',
+              backgroundColor: '#27ae60',
               color: '#fff',
               border: 'none',
               borderRadius: 6,
               cursor: 'pointer',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1c5980')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#2980b9')}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1e8449')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#27ae60')}
           >
-            처음부터 다시
+            완료
           </button>
+        </div>
+      )}
+
+      {/* 완료 토스트 */}
+      {toastVisible && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 20,
+            right: 20,
+            backgroundColor: '#333',
+            color: '#fff',
+            padding: '12px 20px',
+            borderRadius: 8,
+            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+            zIndex: 9999,
+            opacity: 0.9,
+          }}
+        >
+          완료되었습니다
         </div>
       )}
     </div>
