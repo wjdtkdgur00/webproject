@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const scenarios = [
   {
@@ -52,7 +53,7 @@ const scenarios = [
   },
 ];
 
-function SecurityScenario({ onBack }) {
+function SecurityScenario({ onBack, token }) {
   const [currentId, setCurrentId] = useState(scenarios[0].id);
   const [result, setResult] = useState(null);
 
@@ -66,6 +67,26 @@ function SecurityScenario({ onBack }) {
     } else {
       setCurrentId(option.nextStepId);
       setResult(null);
+    }
+  };
+
+  const sendScenarioCompletion = async () => {
+    try {
+      await axios.post(
+        'http://localhost:8080/scenario/complete', // 👉 실제 서버 주소로 변경
+        {
+          scenario: 'SECURITY',
+          completedAt: new Date().toISOString(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log('시나리오 완료 기록 전송 성공');
+    } catch (error) {
+      console.error('시나리오 완료 기록 전송 실패:', error);
     }
   };
 
@@ -117,7 +138,9 @@ function SecurityScenario({ onBack }) {
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#d0d7de')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ecf0f1')}
               >
-                <span style={{ fontWeight: 'bold', color: '#2980b9' }}>{opt.id.toUpperCase()}.</span>
+                <span style={{ fontWeight: 'bold', color: '#2980b9' }}>
+                  {opt.id.toUpperCase()}.
+                </span>
                 {opt.text}
               </li>
             ))}
@@ -148,6 +171,7 @@ function SecurityScenario({ onBack }) {
           <p style={{ fontSize: 16, marginTop: 10 }}>{result.description}</p>
           <button
             onClick={() => {
+              sendScenarioCompletion(); // ✅ 시나리오 완료 API 호출
               setCurrentId(scenarios[0].id);
               setResult(null);
             }}

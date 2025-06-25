@@ -177,7 +177,7 @@ const steps = [
 ];
 
 
-function SmishingScenario({ onBack }) {
+function SmishingScenario({ onBack, token }) {
   const [currentStepId, setCurrentStepId] = useState(steps[0].id);
   const [result, setResult] = useState(null);
 
@@ -187,17 +187,34 @@ function SmishingScenario({ onBack }) {
     const nextStep = steps.find((step) => step.id === option.nextStepId);
 
     if (nextStep && nextStep.result) {
-      // 다음 스텝이 결과를 포함하면 결과 표시
       setResult(nextStep.result);
       setCurrentStepId(null);
     } else if (nextStep) {
-      // 다음 스텝이 질문이면 진행
       setCurrentStepId(nextStep.id);
       setResult(null);
     } else {
-      // 다음 스텝이 없으면 (안전장치)
       setResult(null);
       setCurrentStepId(null);
+    }
+  };
+
+  const sendScenarioCompletion = async () => {
+    try {
+      await axios.post(
+        'http://localhost:8080/scenario/complete', // 👉 실제 서버 주소로 변경
+        {
+          scenario: 'SMISHING',
+          completedAt: new Date().toISOString(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log('시나리오 완료 기록 전송 성공');
+    } catch (error) {
+      console.error('시나리오 완료 기록 전송 실패:', error);
     }
   };
 
@@ -290,6 +307,7 @@ function SmishingScenario({ onBack }) {
           <p style={{ fontSize: 16, marginTop: 10 }}>{result.description}</p>
           <button
             onClick={() => {
+              sendScenarioCompletion(); // ✅ 시나리오 완료 API 호출
               setCurrentStepId(steps[0].id);
               setResult(null);
             }}

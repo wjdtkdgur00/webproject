@@ -1,11 +1,10 @@
-// src/components/scenarios/PhishingScenario.jsx
-
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const steps = [
   {
     id: 1,
-    question: "회사 메일함에 “긴급: 비밀번호 만료”라는 제목의 이메일이 도착했습니다. 메일 본문에는 “여기를 눌러 새 비밀번호를 설정하세요”라는 링크가 포함되어 있습니다. 어떤 행동을 하시겠습니까?",
+    question: "회사 메일함에 \u201c긴급: 비밀번호 만료\u201d라는 제목의 이메일이 도착했습니다. 메일 본문에는 \u201c여기를 눌러 새 비밀번호를 설정하세요\u201d라는 링크가 포함되어 있습니다. 어떤 행동을 하시겠습니까?",
     imageUrl: "https://cdn-icons-png.flaticon.com/512/561/561127.png",
     options: [
       { id: 'a', text: "메일 본문에 있는 링크를 바로 클릭한다.", nextStepId: 2 },
@@ -25,7 +24,7 @@ const steps = [
   },
   {
     id: 3,
-    question: "발신자 주소를 확인했더니 “secure-update@secure-company.com”처럼 회사 도메인과 비슷하지만 철자가 미묘하게 다릅니다. 이후 어떤 행동을 하시겠습니까?",
+    question: "발신자 주소를 확인했더니 \u201csecure-update@secure-company.com\u201d처럼 회사 도메인과 비슷하지만 철자가 미묘하게 다릅니다. 이후 어떤 행동을 하시겠습니까?",
     imageUrl: "https://cdn-icons-png.flaticon.com/512/565/565547.png",
     options: [
       { id: 'a', text: "즉시 메일을 신고(보안팀)하고 삭제한다.", nextStepId: 7 },
@@ -127,21 +126,34 @@ const steps = [
   },
 ];
 
-function PhishingScenario({ onBack }) {
+function PhishingScenario({ onBack, token }) {
   const [currentStepId, setCurrentStepId] = useState(steps[0].id);
   const [result, setResult] = useState(null);
 
   const currentStep = steps.find((step) => step.id === currentStepId);
 
   const handleOption = (option) => {
-    const nextStep = steps.find(step => step.id === option.nextStepId);
+    const nextStep = steps.find((step) => step.id === option.nextStepId);
 
     if (nextStep?.result) {
       setResult(nextStep.result);
-      setCurrentStepId(null);  // 결과 단계라 더 이상 진행할 단계 없음
+      setCurrentStepId(null);
+      sendScenarioComplete();
     } else {
       setCurrentStepId(option.nextStepId);
       setResult(null);
+    }
+  };
+
+  const sendScenarioComplete = async () => {
+    try {
+      await axios.post(
+        'http://localhost:8080/scenario/complete',
+        { scenario: 'phishing' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (err) {
+      console.error('시나리오 완료 전송 실패', err);
     }
   };
 

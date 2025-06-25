@@ -161,13 +161,33 @@ const steps = [
   },
 ];
 
-function NFCScenario({ onBack }) {
+function NFCScenario({ onBack, token }) {
   const [currentStepId, setCurrentStepId] = useState(steps[0].id);
   const currentStep = steps.find((step) => step.id === currentStepId);
   const result = currentStep?.result || null;
 
   const handleOption = (option) => {
     setCurrentStepId(option.nextStepId);
+  };
+
+  const sendScenarioCompletion = async () => {
+    try {
+      await axios.post(
+        'http://localhost:8080/scenario/complete', // 👉 실제 서버 주소로 변경
+        {
+          scenario: 'NFC',
+          completedAt: new Date().toISOString(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log('시나리오 완료 기록 전송 성공');
+    } catch (error) {
+      console.error('시나리오 완료 기록 전송 실패:', error);
+    }
   };
 
   return (
@@ -250,6 +270,7 @@ function NFCScenario({ onBack }) {
           <p style={{ fontSize: 16, marginTop: 10 }}>{result.description}</p>
           <button
             onClick={() => {
+              sendScenarioCompletion(); // ✅ 시나리오 완료 API 호출
               setCurrentStepId(steps[0].id);
             }}
             style={{
