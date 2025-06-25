@@ -142,35 +142,53 @@ const steps = [
 function PhishingScenario({ onBack, token }) {
   const [currentStepId, setCurrentStepId] = useState(steps[0].id);
   const [result, setResult] = useState(null);
+  const [toastVisible, setToastVisible] = useState(false);
 
   const currentStep = steps.find((step) => step.id === currentStepId);
 
   const handleOption = (option) => {
     const nextStep = steps.find((step) => step.id === option.nextStepId);
 
-    if (nextStep?.result) {
+    if (nextStep && nextStep.result) {
       setResult(nextStep.result);
       setCurrentStepId(null);
-      sendScenarioComplete();
-    } else {
-      setCurrentStepId(option.nextStepId);
+    } else if (nextStep) {
+      setCurrentStepId(nextStep.id);
       setResult(null);
+    } else {
+      setResult(null);
+      setCurrentStepId(null);
     }
   };
 
-  const sendScenarioComplete = async () => {
+  const sendScenarioCompletion = async () => {
     try {
       await axios.post(
         'http://localhost:8080/scenario/complete',
-        { scenario: 'phishing' },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          scenario: 'PHISHING',
+          completedAt: new Date().toISOString(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-    } catch (err) {
-      console.error('시나리오 완료 전송 실패', err);
+      console.log('시나리오 완료 기록 전송 성공');
+    } catch (error) {
+      console.error('시나리오 완료 기록 전송 실패:', error);
     }
   };
 
-  if (!currentStep && !result) return <div>시나리오를 불러오는 중...</div>;
+  const handleCompleteClick = async () => {
+    await sendScenarioCompletion();
+    setToastVisible(true);
+    setTimeout(() => {
+      setToastVisible(false);
+      window.location.href = '/';
+    }, 2000);
+  };
 
   return (
     <div style={{ padding: 20 }}>
@@ -191,25 +209,22 @@ function PhishingScenario({ onBack, token }) {
       {!result && currentStep && (
         <>
           <h2 style={{ color: '#2c3e50' }}>피싱(Phishing) 공격 시나리오</h2>
-
           {currentStep.imageUrl && (
             <img
               src={currentStep.imageUrl}
               alt="단계 이미지"
-              style={{ width: 80, height: 80, margin: '10px 0' }}
+              style={{ width: 80, height: 80, margin: '10px 0', objectFit: 'contain' }}
             />
           )}
-
           <p style={{ fontSize: 18, fontWeight: '600' }}>{currentStep.question}</p>
-
           <ul style={{ listStyle: 'none', padding: 0 }}>
-            {Array.isArray(currentStep.options) &&
-              currentStep.options.map((opt) => (
-                <li
-                  key={opt.id}
+            {currentStep.options.map((opt) => (
+              <li key={opt.id} style={{ margin: '10px 0' }}>
+                <button
+                  type="button"
                   onClick={() => handleOption(opt)}
                   style={{
-                    margin: '10px 0',
+                    width: '100%',
                     padding: '10px 15px',
                     backgroundColor: '#ecf0f1',
                     borderRadius: 6,
@@ -218,37 +233,89 @@ function PhishingScenario({ onBack, token }) {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 8,
+                    fontWeight: '500',
                     userSelect: 'none',
+                    border: 'none',
+                    textAlign: 'left',
                   }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = '#d0d7de')
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = '#ecf0f1')
+                  }
                 >
+                  <span style={{ fontWeight: 'bold', color: '#2980b9' }}>
+                    {opt.id.toUpperCase()}.
+                  </span>
                   {opt.text}
-                </li>
-              ))}
+                </button>
+              </li>
+            ))}
           </ul>
         </>
       )}
 
       {result && (
-        <div>
-          <h2 style={{ color: '#e74c3c' }}>{result.title}</h2>
-          <img
-            src={result.imageUrl}
-            alt="결과 이미지"
-            style={{ width: 100, height: 100, margin: '10px 0' }}
-          />
-          <pre
+        <div
+          style={{
+            marginTop: 20,
+            padding: 20,
+            backgroundColor: '#f9f9f9',
+            borderRadius: 10,
+            boxShadow: '0 3px 6px rgba(0,0,0,0.1)',
+            textAlign: 'center',
+            whiteSpace: 'pre-line',
+          }}
+        >
+          <h3 style={{ color: '#c0392b', marginBottom: 10 }}>{result.title}</h3>
+          {result.imageUrl && (
+            <img
+              src={result.imageUrl}
+              alt="결과 이미지"
+              style={{ width: 100, height: 100, margin: '15px 0', objectFit: 'contain' }}
+            />
+          )}
+          <p style={{ fontSize: 16, marginTop: 10 }}>{result.description}</p>
+          <button
+            onClick={handleCompleteClick}
             style={{
-              whiteSpace: 'pre-wrap',
-              backgroundColor: '#fefefe',
-              padding: '12px 18px',
-              border: '1px solid #ddd',
-              borderRadius: 8,
-              fontSize: 15,
-              lineHeight: 1.6,
+              marginTop: 20,
+              padding: '8px 16px',
+              backgroundColor: '#27ae60',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              cursor: 'pointer',
             }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = '#1e8449')
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = '#27ae60')
+            }
           >
-            {result.description}
-          </pre>
+            완료
+          </button>
+        </div>
+      )}
+
+      {toastVisible && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 20,
+            right: 20,
+            backgroundColor: '#333',
+            color: '#fff',
+            padding: '12px 20px',
+            borderRadius: 8,
+            boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+            zIndex: 9999,
+            opacity: 0.9,
+          }}
+        >
+          완료되었습니다
         </div>
       )}
     </div>
