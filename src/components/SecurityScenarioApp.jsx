@@ -3,8 +3,8 @@ import PhishingScenario from './scenarios/PhishingScenario';
 import SmishingScenario from './scenarios/SmishingScenario';
 import NFCScenario from './scenarios/NFCScenario';
 import QRScenario from './scenarios/QRScenario';
-import LoginPage from './LoginPage'; // 로그인 컴포넌트 추가
-import axios from 'axios';
+import LoginPage from './LoginPage';
+import RegisterPage from './RegisterPage';
 
 const scenarioList = [
   { id: 1, title: '피싱(Phishing) 공격 시나리오' },
@@ -12,10 +12,12 @@ const scenarioList = [
   { id: 3, title: 'NFC 결제 악용 시나리오' },
   { id: 4, title: 'QR 코드 피싱 시나리오' },
 ];
+
 function SecurityScenarioApp() {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [username, setUsername] = useState(localStorage.getItem('username'));
   const [selectedId, setSelectedId] = useState(null);
+  const [page, setPage] = useState('login'); // login or register
 
   const handleLogin = (receivedToken, receivedUsername) => {
     setToken(receivedToken);
@@ -39,10 +41,25 @@ function SecurityScenarioApp() {
     }
   };
 
+  // 로그인 상태 아닐 때: 페이지 선택
   if (!token) {
-    return <LoginPage onLogin={handleLogin} />;
+    if (page === 'register') {
+      return (
+        <RegisterPage
+          onRegisterSuccess={() => setPage('login')}
+          onBack={() => setPage('login')}
+        />
+      );
+    }
+    return (
+      <LoginPage
+        onLogin={handleLogin}
+        onMoveToRegister={() => setPage('register')}
+      />
+    );
   }
 
+  // 로그인 성공 시 시나리오 선택 화면
   return (
     <div style={{ maxWidth: 700, margin: 'auto', padding: 20 }}>
       {!selectedId ? (
@@ -83,4 +100,3 @@ function SecurityScenarioApp() {
 }
 
 export default SecurityScenarioApp;
-// SecurityScenarioApp.jsx  
