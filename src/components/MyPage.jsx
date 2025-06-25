@@ -24,7 +24,7 @@ function MyPage({ token, onLogout, onBack }) {
   const fetchCompletedScenarios = async () => {
     try {
       const response = await axios.get('http://localhost:8080/scenario/completed', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `${token}` },
       });
       setCompletedScenarios(response.data); // 배열로 온다고 가정
     } catch (error) {
